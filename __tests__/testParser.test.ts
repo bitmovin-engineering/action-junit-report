@@ -1,5 +1,4 @@
 import { resolveFileAndLine, resolvePath, parseFile, Transformer } from '../src/testParser'
-import { generateFailedTestsReport } from "../src/failedTestsReport";
 
 /**
  * Original test cases:
@@ -21,7 +20,7 @@ describe('resolveFileAndLine', () => {
     it('should parse correctly fileName and line for a Java file', async () => {
         const { fileName, line } = await resolveFileAndLine(
             null,
-            null,
+            null, 
             'action.surefire.report.email.EmailAddressTest',
             `
 action.surefire.report.email.InvalidEmailAddressException: Invalid email address 'user@ñandú.com.ar'
@@ -36,7 +35,7 @@ action.surefire.report.email.InvalidEmailAddressException: Invalid email address
     it('should parse correctly fileName and line for a Kotlin file', async () => {
         const { fileName, line } = await resolveFileAndLine(
             null,
-            null,
+            null, 
             'action.surefire.report.calc.CalcUtilsTest',
             `
 java.lang.AssertionError: unexpected exception type thrown; expected:<java.lang.IllegalStateException> but was:<java.lang.IllegalArgumentException>
@@ -54,7 +53,7 @@ Caused by: java.lang.IllegalArgumentException: Amount must have max 2 non-zero d
     it('should parse correctly fileName and line for extended stacktrace', async () => {
         const { fileName, line } = await resolveFileAndLine(
             null,
-            null,
+            null, 
             'action.surefire.report.calc.StringUtilsTest',
             `
 java.lang.AssertionError:
@@ -78,7 +77,7 @@ Stacktrace was: java.lang.IllegalArgumentException: Input='' didn't match condit
     it('should parse correctly fileName and line for pytest', async () => {
         const { fileName, line } = await resolveFileAndLine(
             'test.py',
-            null,
+            null, 
             'anything',
             `
 def
@@ -97,7 +96,7 @@ test.py:14: AttributeError
     it('should parse correctly line number for rust tests', async () => {
       const { fileName, line } = await resolveFileAndLine(
         null,
-        null,
+        null, 
         'project',
         `thread &#x27;project::admission_webhook_tests::it_should_be_possible_to_update_projects&#x27; panicked at &#x27;boom&#x27;, tests/project/admission_webhook_tests.rs:48:38
 note: run with &#x60;RUST_BACKTRACE&#x3D;1&#x60; environment variable to display a backtrace
@@ -111,7 +110,7 @@ note: run with &#x60;RUST_BACKTRACE&#x3D;1&#x60; environment variable to display
   it('should parse correctly line number for rust tests 2', async () => {
     const { fileName, line } = await resolveFileAndLine(
       null,
-      null,
+      null, 
       'project::manifest_secrets',
       `thread 'project::manifest_secrets::it_should_skip_annotated_manifests' panicked at 'assertion failed: \`(left == right)\`\\n" +
         '  left: \`0\`,\\n' +
@@ -327,7 +326,7 @@ describe('parseFile', () => {
     it('should parse correctly fileName and line for a Java file with invalid chars', async () => {
         const { fileName, line } = await resolveFileAndLine(
             null,
-            null,
+            null, 
             'action.surefire.report.email.EmailAddressTest++',
             `
 action.surefire.report.email.InvalidEmailAddressException: Invalid email address 'user@ñandú.com.ar'
@@ -597,7 +596,7 @@ action.surefire.report.email.InvalidEmailAddressException: Invalid email address
     });
 
     it('should parse and transform perl results', async () => {
-
+        
         const transformer: Transformer[] =  [
             {
               searchValue: "\\.",
@@ -670,39 +669,3 @@ action.surefire.report.email.InvalidEmailAddressException: Invalid email address
         ]);
     });
 });
-
-describe('generate failed tests report', () => {
-    it('does not exceed char limit', async () => {
-        const { annotations } = await parseFile('test_results/failed-tests-report/junit.xml');
-        let charLimit = 5
-        let output = generateFailedTestsReport(annotations, charLimit)
-
-        expect(output.length).toBe(charLimit)
-    });
-
-    it('only returns the first test with additonal failed tests decription', async () => {
-        const { annotations } = await parseFile('test_results/failed-tests-report/junit.xml');
-        let charLimit = 200
-        let testLimit = 1
-        let output = generateFailedTestsReport(annotations, charLimit, testLimit)
-
-        expect(output).toBe("*FirstFailedTest*\\n```failure```\\n\\n+ additional *2* failed tests.")
-    });
-
-    it('only returns the first test and does not exceed char limit', async () => {
-        const { annotations } = await parseFile('test_results/failed-tests-report/junit.xml');
-        let charLimit = 17
-        let testLimit = 1
-        let output = generateFailedTestsReport(annotations, charLimit, testLimit)
-
-        expect(output).toBe("*FirstFailedTest*")
-    });
-
-    it('returns a valid json field string', async () => {
-        const { annotations } = await parseFile('test_results/failed-tests-report/junit.xml');
-        let output = generateFailedTestsReport(annotations)
-
-        // This will throw if output contains invalid json field chars and the test will fail.
-        JSON.parse(`{"report": "${output}"}`)
-    });
-})
