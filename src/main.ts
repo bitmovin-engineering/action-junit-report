@@ -3,6 +3,7 @@ import * as github from '@actions/github'
 import {annotateTestResult, attachSummary} from './annotator'
 import {parseTestReports, TestResult} from './testParser'
 import {readTransformers, retrieve} from './utils'
+import {generateFailedTestsReport} from './failedTestsReport'
 
 export async function run(): Promise<void> {
   try {
@@ -72,6 +73,7 @@ export async function run(): Promise<void> {
       mergedResult.skipped += testResult.skipped
       mergedResult.failed += testResult.failed
       mergedResult.passed += testResult.passed
+      mergedResult.annotations.push(...testResult.annotations)
 
       const foundResults = testResult.totalCount > 0 || testResult.skipped > 0
       if (!foundResults) {
@@ -88,6 +90,7 @@ export async function run(): Promise<void> {
     core.setOutput('passed', mergedResult.passed)
     core.setOutput('skipped', mergedResult.skipped)
     core.setOutput('failed', mergedResult.failed)
+    core.setOutput('failedTests', generateFailedTestsReport(mergedResult.annotations))
 
     const pullRequest = github.context.payload.pull_request
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
