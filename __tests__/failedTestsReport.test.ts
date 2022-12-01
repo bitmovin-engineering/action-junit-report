@@ -10,7 +10,7 @@ describe('generate failed tests report', () => {
         expect(output.length).toBe(charLimit)
     });
 
-    it('only returns the first test with additonal failed tests decription', async () => {
+    it('only returns the first test with additional failed tests description', async () => {
         const { annotations } = await parseFile('test_results/failed-tests-report/junit.xml');
         let charLimit = 200
         let testLimit = 1

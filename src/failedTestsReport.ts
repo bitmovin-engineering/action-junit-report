@@ -1,4 +1,4 @@
-import { Annotation } from './testParser'
+import {Annotation} from './testParser'
 
 /**
  * Limit output, because we use it to send a message to Slack inside a section
@@ -14,8 +14,8 @@ const defaultOutputCharLimit = 2500
 const defaultMaxTestsToOutput = 8
 
 /**
- * Takes @param annotations and returns a markdown-formatted string
- * of failing test titles and descriptions separated by new line chars.
+ * Takes [annotations] and returns a markdown-formatted string
+ * of failing test titles and descriptions separated by new lines.
  */
 export function generateFailedTestsReport(
   annotations: Annotation[],
@@ -34,8 +34,6 @@ export function generateFailedTestsReport(
     output += `\\n\\n+ additional *${ignoredTestsCount}* failed tests.`
   }
 
-  // In rare cases where output is over 3000 chars long
-  // just slice it so that Slack message step in the CI doesn't fail.
   return output.slice(0, outputCharLimit)
 }
 
