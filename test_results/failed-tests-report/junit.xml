@@ -1,0 +1,20 @@
+<testsuites>
+    <testsuite tests="5" failures="3" time="50.0" name="TestB">
+        <properties></properties>
+        <testcase classname="" name="FirstPassedTest" time="10.0" cluster_instance="packet-1"></testcase>
+        <testcase classname="" name="SecondPassedTest" time="10.0" cluster_instance="packet-1"></testcase>
+        <testcase classname="" name="FirstFailedTest" time="10.0" cluster_instance="packet-1">
+            <failure message="failure"></failure>
+        </testcase>        
+        <testcase classname="" name="SecondFailedTest" time="10.0" cluster_instance="packet-1">
+            <failure message="failure"></failure>
+        </testcase>     
+        <testcase classname="" name="ThirdFailedTest" time="10.0" cluster_instance="packet-1">
+            <failure>▼ Expect that true:
+✗ is "false"
+found true
+▼ Expect that false:
+✓ is false</failure>
+        </testcase>
+    </testsuite>
+</testsuites>
