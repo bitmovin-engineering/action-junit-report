@@ -110,6 +110,7 @@ A full set list of possible output values for this action.
 | `outputs.passed`      | The number of passed test cases.                                                       |
 | `outputs.skipped`     | The number of skipped test cases.                                                      |
 | `outputs.failed`      | The number of failed test cases.                                                       |
+| `outputs.failedTests` | Names and descriptions of failed tests.                                                |
 
 ### PR run permissions
 
