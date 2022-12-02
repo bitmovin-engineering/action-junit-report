@@ -164,6 +164,52 @@ exports.attachSummary = attachSummary;
 
 /***/ }),
 
+/***/ 1919:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.generateFailedTestsReport = void 0;
+/**
+ * Limit output, because we use it to send a message to Slack inside a section
+ * that is limited to 3000 chars and already contains some other text.
+ */
+const defaultOutputCharLimit = 2500;
+/**
+ * Limit number of tests that are displayed, otherwise the Slack message will
+ * get too big and will just be less readable.
+ * For cases where there is a lot of failing tests in-depth review of the run will be needed anyway.
+ */
+const defaultMaxTestsToOutput = 8;
+/**
+ * Takes [annotations] and returns a markdown-formatted string
+ * of failing test titles and descriptions separated by new lines.
+ */
+function generateFailedTestsReport(annotations, outputCharLimit = defaultOutputCharLimit, maxTestsToOutput = defaultMaxTestsToOutput) {
+    const failedTestAnnotations = annotations.filter(annotation => annotation.annotation_level === 'failure');
+    let output = failedTestAnnotations
+        .slice(0, maxTestsToOutput)
+        .map(annotation => formatAnnotation(annotation))
+        .join('\\n');
+    const ignoredTestsCount = failedTestAnnotations.length - maxTestsToOutput;
+    if (ignoredTestsCount > 0) {
+        output += `\\n\\n+ additional *${ignoredTestsCount}* failed tests.`;
+    }
+    return output.slice(0, outputCharLimit);
+}
+exports.generateFailedTestsReport = generateFailedTestsReport;
+function formatAnnotation(annotation) {
+    const title = annotation.title;
+    const description = annotation.message.replace(/\n/g, '\\n').replace(/"/g, '\\"');
+    const formattedTitle = `*${title}*`;
+    const formattedDescription = `\`\`\`${description}\`\`\``;
+    return `${formattedTitle}\\n${formattedDescription}`;
+}
+
+
+/***/ }),
+
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -208,6 +254,7 @@ const github = __importStar(__nccwpck_require__(5438));
 const annotator_1 = __nccwpck_require__(1365);
 const testParser_1 = __nccwpck_require__(1465);
 const utils_1 = __nccwpck_require__(918);
+const failedTestsReport_1 = __nccwpck_require__(1919);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -256,6 +303,7 @@ function run() {
                 mergedResult.skipped += testResult.skipped;
                 mergedResult.failed += testResult.failed;
                 mergedResult.passed += testResult.passed;
+                mergedResult.annotations.push(...testResult.annotations);
                 const foundResults = testResult.totalCount > 0 || testResult.skipped > 0;
                 if (!foundResults) {
                     if (requireTests) {
@@ -269,6 +317,7 @@ function run() {
             core.setOutput('passed', mergedResult.passed);
             core.setOutput('skipped', mergedResult.skipped);
             core.setOutput('failed', mergedResult.failed);
+            core.setOutput('failedTests', (0, failedTestsReport_1.generateFailedTestsReport)(mergedResult.annotations));
             const pullRequest = github.context.payload.pull_request;
             const link = (pullRequest && pullRequest.html_url) || github.context.ref;
             const conclusion = mergedResult.totalCount > 0 && mergedResult.failed <= 0 ? 'success' : 'failure';
