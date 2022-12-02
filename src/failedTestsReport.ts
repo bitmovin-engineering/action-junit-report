@@ -22,7 +22,7 @@ export function generateFailedTestsReport(
   outputCharLimit: number = defaultOutputCharLimit,
   maxTestsToOutput: number = defaultMaxTestsToOutput
 ): String {
-  const failedTestAnnotations = annotations.filter(annotation => annotation.annotation_level == 'failure')
+  const failedTestAnnotations = annotations.filter(annotation => annotation.annotation_level === 'failure')
 
   let output = failedTestAnnotations
     .slice(0, maxTestsToOutput)
@@ -39,10 +39,7 @@ export function generateFailedTestsReport(
 
 function formatAnnotation(annotation: Annotation): String {
   const title = annotation.title
-  const description = annotation
-    .message
-    .replace(/\n/g, '\\n')
-    .replace(/"/g, '\\"')
+  const description = annotation.message.replace(/\n/g, '\\n').replace(/"/g, '\\"')
 
   const formattedTitle = `*${title}*`
   const formattedDescription = `\`\`\`${description}\`\`\``
