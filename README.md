@@ -104,13 +104,13 @@ After action execution it will return the test counts as output.
 
 A full set list of possible output values for this action.
 
-| **Output**            | **Description**                                           |
-|-----------------------|-----------------------------------------------------------|
-| `outputs.total`       | The total number of test cases covered by this test-step. |
-| `outputs.passed`      | The number of passed test cases.                          |
-| `outputs.skipped`     | The number of skipped test cases.                         |
-| `outputs.failed`      | The number of failed test cases.                          |
-| `outputs.failedTests` | Names and descriptions of failed tests.                   |
+| **Output**            | **Description**                                                                        |
+|-----------------------|----------------------------------------------------------------------------------------|
+| `outputs.total`       | The total number of test cases covered by this test-step.                              |
+| `outputs.passed`      | The number of passed test cases.                                                       |
+| `outputs.skipped`     | The number of skipped test cases.                                                      |
+| `outputs.failed`      | The number of failed test cases.                                                       |
+| `outputs.failedTests` | Names and descriptions of failed tests.                                                |
 
 ### PR run permissions
 
