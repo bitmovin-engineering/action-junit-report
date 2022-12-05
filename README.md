@@ -209,8 +209,8 @@ We append an incrementing number to the version we base this fork on. Example:`3
 
 ## Releasing
 - Create a release tag (E.g. `v3.6.1.2`).
-- We also point a major release tag to the latest version.
-  So delete the old major tag (E.g. `v3`) and create a new one, pointing to the latest changes.
+- Point a major release tag to the latest version.
+  - Delete the old major tag (E.g. `v3`) and create a new one, pointing to the latest changes.
 - Push tags
 
 ### Credits
