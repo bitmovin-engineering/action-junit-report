@@ -204,6 +204,15 @@ $ npm run build && npm run package
 $ npm test
 ```
 
+## Versioning
+We append an incrementing number to the version we base this fork on. Example:`3.6.1` -> `3.6.1.1`
+
+## Releasing
+- Create a release tag (E.g. `v3.6.1.2`).
+- We also point a major release tag to the latest version.
+  So delete the old major tag (E.g. `v3`) and create a new one, pointing to the latest changes.
+- Push tags
+
 ### Credits
 
 Original idea and GitHub Actions by: https://github.com/ScaCap/action-surefire-report
