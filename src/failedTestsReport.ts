@@ -38,10 +38,19 @@ export function generateFailedTestsReport(
 }
 
 function formatAnnotation(annotation: Annotation): String {
-  const title = annotation.title
-  const description = annotation.message.replace(/\n/g, '\\n').replace(/"/g, '\\"')
+  const title = escapeJsonIllegalChars(annotation.title)
+  const description = escapeJsonIllegalChars(annotation.message)
 
   const formattedTitle = `*${title}*`
   const formattedDescription = `\`\`\`${description}\`\`\``
   return `${formattedTitle}\\n${formattedDescription}`
+}
+
+function escapeJsonIllegalChars(string: String): String {
+  return string
+    .replace(/\n/g, '\\n')
+    .replace(/"/g, '\\"')
+    .replace(/\t/g, '\\t')
+    .replace(/\r/g, '\\r')
+    .replace(/\v/g, '\\v')
 }

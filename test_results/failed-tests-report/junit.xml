@@ -5,10 +5,10 @@
         <testcase classname="" name="SecondPassedTest" time="10.0" cluster_instance="packet-1"></testcase>
         <testcase classname="" name="FirstFailedTest" time="10.0" cluster_instance="packet-1">
             <failure message="failure"></failure>
-        </testcase>        
+        </testcase>
         <testcase classname="" name="SecondFailedTest" time="10.0" cluster_instance="packet-1">
-            <failure message="failure"></failure>
-        </testcase>     
+            <failure>Log with a tab"	"</failure>
+        </testcase>
         <testcase classname="" name="ThirdFailedTest" time="10.0" cluster_instance="packet-1">
             <failure>▼ Expect that true:
 ✗ is "false"
