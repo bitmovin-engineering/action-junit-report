@@ -38,10 +38,15 @@ export function generateFailedTestsReport(
 }
 
 function formatAnnotation(annotation: Annotation): String {
-  const title = annotation.title
-  const description = annotation.message.replace(/\n/g, '\\n').replace(/"/g, '\\"')
+  const title = escapeJsonIllegalChars(annotation.title)
+  const description = escapeJsonIllegalChars(annotation.message)
 
   const formattedTitle = `*${title}*`
   const formattedDescription = `\`\`\`${description}\`\`\``
   return `${formattedTitle}\\n${formattedDescription}`
+}
+
+function escapeJsonIllegalChars(string: String): String {
+  // JSON.stringify adds quote marks at the beginning and the end of the string, so slice them away.
+  return JSON.stringify(string).slice(1, -1)
 }
