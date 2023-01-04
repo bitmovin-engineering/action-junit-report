@@ -47,10 +47,6 @@ function formatAnnotation(annotation: Annotation): String {
 }
 
 function escapeJsonIllegalChars(string: String): String {
-  return string
-    .replace(/\n/g, '\\n')
-    .replace(/"/g, '\\"')
-    .replace(/\t/g, '\\t')
-    .replace(/\r/g, '\\r')
-    .replace(/\v/g, '\\v')
+  // JSON.stringify adds quote marks at the beginning and the end of the string, so slice them away.
+  return JSON.stringify(string).slice(1, -1)
 }
