@@ -93,6 +93,8 @@ jobs:
 | `detailed_summary`    | Optional. Include table with all test results in the summary. Defaults to `false`.                            |
 | `annotate_notice`    | Optional. Annotate passed test results along with warning/failed ones. Defaults to `false`. (Changed in v3.5.0)                           |
 | `follow_symlink`    | Optional. Enables to follow symlinks when searching test files via the globber. Defaults to `false`.                           |
+| `job_name`        | Optional. Specify the name of a check to update                                                                                                                    |
+| `annotations_limit` | Optional. Specify the limit for annotations. This will also interrupt parsing all test-suites if the limit is reached. Defaults to: `No Limit`.                                              |
 
 ### Action outputs
 
