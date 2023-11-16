@@ -4,38 +4,40 @@ on:
     tags:
       - '*'
   pull_request:
+  workflow_dispatch:
 
 jobs:
   build:
-    if: github.event_name  == 'pull_request'
+    if: github.event_name  == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+        uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '20'
       - name: Test JUnit test import
         uses: ./
-        if: endsWith(github.ref, 'main') == false
         with:
           check_name: Example JUnit Test Report
           report_paths: '**/surefire-reports/TEST-*.xml'
+          include_passed: true
+          detailed_summary: true
           summary: '<table><thead><tr><th> Application (src/applications) </th></tr></thead><tbody><tr><td> test </td></tr></tbody></table>'
           check_title_template: '{{SUITE_NAME}} | {{TEST_NAME}}'
+          annotate_only: ${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Test PyTest test import
         uses: ./
-        if: endsWith(github.ref, 'main') == false
         with:
           check_name: Example Pytest Report
           report_paths: test_results/python/report.xml
           include_passed: true
           detailed_summary: true
+          annotate_only: ${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Test Multi test import
         uses: ./
-        if: endsWith(github.ref, 'main') == false
         with:
           check_name: |-
             Example Multi JUnit Test Report
@@ -51,6 +53,7 @@ jobs:
             \n
           transformers: |
             [{"searchValue":"::","replaceValue":"/"}]
+          annotate_only: ${{ github.event_name == 'workflow_dispatch' }}
         
       - name: Install NPM
         run: |
@@ -66,18 +69,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: "Build Changelog"
         id: github_release
-        uses: mikepenz/release-changelog-builder-action@v2
+        uses: mikepenz/release-changelog-builder-action@v4
         with:
           configuration: ".github/config/configuration.json"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Release
-        uses: softprops/action-gh-release@6034af24fba4e5a8e975aaa6056554efe4c794d0
+        uses: mikepenz/action-gh-release@v1
         with:
           body: ${{steps.github_release.outputs.changelog}}
           prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-b') || contains(github.ref, '-a') }}
