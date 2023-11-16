@@ -99,6 +99,14 @@ export async function run(): Promise<void> {
       return // end if we failed due to no passed tests, but configured to require passed tests
     }
 
+    if (!(mergedResult.totalCount > 0 || mergedResult.skipped > 0) && requireTests) {
+      core.setFailed(`❌ No test results found for ${checkName}`)
+      return // end if we failed due to no tests, but configured to require tests
+    } else if (!(mergedResult.passed > 0) && requirePassedTests) {
+      core.setFailed(`❌ No passed test results found for ${checkName}`)
+      return // end if we failed due to no passed tests, but configured to require passed tests
+    }
+
     const pullRequest = github.context.payload.pull_request
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
     const conclusion: 'success' | 'failure' = mergedResult.failed <= 0 ? 'success' : 'failure'

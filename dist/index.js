@@ -170,56 +170,6 @@ exports.attachSummary = attachSummary;
 
 /***/ }),
 
-/***/ 1919:
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.generateFailedTestsReport = void 0;
-/**
- * Limit output, because we use it to send a message to Slack inside a section
- * that is limited to 3000 chars and already contains some other text.
- */
-const defaultOutputCharLimit = 2500;
-/**
- * Limit number of tests that are displayed, otherwise the Slack message will
- * get too big and will just be less readable.
- * For cases where there is a lot of failing tests in-depth review of the run will be needed anyway.
- */
-const defaultMaxTestsToOutput = 8;
-/**
- * Takes [annotations] and returns a markdown-formatted string
- * of failing test titles and descriptions separated by new lines.
- */
-function generateFailedTestsReport(annotations, outputCharLimit = defaultOutputCharLimit, maxTestsToOutput = defaultMaxTestsToOutput) {
-    const failedTestAnnotations = annotations.filter(annotation => annotation.annotation_level === 'failure');
-    let output = failedTestAnnotations
-        .slice(0, maxTestsToOutput)
-        .map(annotation => formatAnnotation(annotation))
-        .join('\\n');
-    const ignoredTestsCount = failedTestAnnotations.length - maxTestsToOutput;
-    if (ignoredTestsCount > 0) {
-        output += `\\n\\n+ additional *${ignoredTestsCount}* failed tests.`;
-    }
-    return output.slice(0, outputCharLimit);
-}
-exports.generateFailedTestsReport = generateFailedTestsReport;
-function formatAnnotation(annotation) {
-    const title = escapeJsonIllegalChars(annotation.title);
-    const description = escapeJsonIllegalChars(annotation.message);
-    const formattedTitle = `*${title}*`;
-    const formattedDescription = `\`\`\`${description}\`\`\``;
-    return `${formattedTitle}\\n${formattedDescription}`;
-}
-function escapeJsonIllegalChars(string) {
-    // JSON.stringify adds quote marks at the beginning and the end of the string, so slice them away.
-    return JSON.stringify(string).slice(1, -1);
-}
-
-
-/***/ }),
-
 /***/ 3109:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -264,7 +214,6 @@ const github = __importStar(__nccwpck_require__(5438));
 const annotator_1 = __nccwpck_require__(1365);
 const testParser_1 = __nccwpck_require__(1465);
 const utils_1 = __nccwpck_require__(918);
-const failedTestsReport_1 = __nccwpck_require__(1919);
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -319,14 +268,12 @@ function run() {
                 mergedResult.skipped += testResult.skipped;
                 mergedResult.failed += testResult.failed;
                 mergedResult.passed += testResult.passed;
-                mergedResult.annotations.push(...testResult.annotations);
                 testResults.push(testResult);
             }
             core.setOutput('total', mergedResult.totalCount);
             core.setOutput('passed', mergedResult.passed);
             core.setOutput('skipped', mergedResult.skipped);
             core.setOutput('failed', mergedResult.failed);
-            core.setOutput('failedTests', (0, failedTestsReport_1.generateFailedTestsReport)(mergedResult.annotations));
             if (!(mergedResult.totalCount > 0 || mergedResult.skipped > 0) && requireTests) {
                 core.setFailed(`❌ No test results found for ${checkName}`);
                 return; // end if we failed due to no tests, but configured to require tests
@@ -538,19 +485,7 @@ function parseFile(file, suiteRegex = '', annotatePassed = false, checkRetries =
     return __awaiter(this, void 0, void 0, function* () {
         core.debug(`Parsing file ${file}`);
         const data = fs.readFileSync(file, 'utf8');
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        let report;
-        try {
-            report = JSON.parse(parser.xml2json(data, { compact: true }));
-        }
-        catch (error) {
-            core.error(`⚠️ Failed to parse file (${file}) with error ${error}`);
-            return {
-                totalCount: 0,
-                skipped: 0,
-                annotations: []
-            };
-        }
+        const report = JSON.parse(parser.xml2json(data, { compact: true }));
         return parseSuite(report, '', suiteRegex, annotatePassed, checkRetries, excludeSources, checkTitleTemplate, testFilesPrefix, transformer, followSymlink, annotationsLimit);
     });
 }
