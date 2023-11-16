@@ -10,7 +10,7 @@ inputs:
     default: ${{ github.token }}
   github_token:
     description: 'Deprecated syntax to specify github token.'
-    required: true
+    required: false
   report_paths:
     description: 'Xml report paths in glob format'
     required: false
@@ -22,7 +22,6 @@ inputs:
   exclude_sources:
     description: 'Comma seperated list of source folders to ignore for lookup'
     required: false
-    default: '/build/,/__pycache__/'
   suite_regex:
     description: 'Regular expression for the named test suites'
     required: false
@@ -48,6 +47,10 @@ inputs:
     default: 'false'
   require_tests:
     description: 'Fail if no test are found.'
+    required: false
+    default: 'false'
+  require_passed_tests:
+    description: 'Fail if no passed test are found.'
     required: false
     default: 'false'
   include_passed:
@@ -94,5 +97,5 @@ inputs:
     description: 'Specify the limit for annotations. This will also interrupt parsing all test-suites if the limit is reached.'
     required: false
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'

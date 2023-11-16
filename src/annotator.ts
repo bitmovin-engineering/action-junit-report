@@ -24,7 +24,7 @@ export async function annotateTestResult(
 
   core.info(`ℹ️ - ${testResult.checkName} - ${title}`)
 
-  const conclusion: 'success' | 'failure' = foundResults && testResult.failed <= 0 ? 'success' : 'failure'
+  const conclusion: 'success' | 'failure' = testResult.failed <= 0 ? 'success' : 'failure'
 
   for (const annotation of annotations) {
     core.info(`   🧪 - ${annotation.path} | ${annotation.message.split('\n', 1)[0]}`)
@@ -82,11 +82,13 @@ export async function annotateTestResult(
         await octokit.rest.checks.update(updateCheckRequest)
       }
     } else {
+      const status: 'completed' | 'in_progress' | 'queued' | undefined = 'completed'
+
       const createCheckRequest = {
         ...github.context.repo,
         name: testResult.checkName,
         head_sha: headSha,
-        status: 'completed',
+        status,
         conclusion,
         output: {
           title,
@@ -113,7 +115,7 @@ export async function attachSummary(
       {data: '', header: true},
       {data: 'Tests', header: true},
       {data: 'Passed ✅', header: true},
-      {data: 'Skipped ↪️', header: true},
+      {data: 'Skipped ⏭️', header: true},
       {data: 'Failed ❌', header: true}
     ]
   ]
@@ -129,7 +131,7 @@ export async function attachSummary(
   for (const testResult of testResults) {
     table.push([
       `${testResult.checkName}`,
-      `${testResult.totalCount} run`,
+      `${testResult.totalCount} ran`,
       `${testResult.passed} passed`,
       `${testResult.skipped} skipped`,
       `${testResult.failed} failed`
@@ -152,7 +154,13 @@ export async function attachSummary(
           detailsTable.push([
             `${testResult.checkName}`,
             `${annotation.title}`,
-            `${annotation.annotation_level === 'notice' ? '✅ pass' : `❌ ${annotation.annotation_level}`}`
+            `${
+              annotation.status === 'success'
+                ? '✅ pass'
+                : annotation.status === 'skipped'
+                ? `⏭️ skipped`
+                : `❌ ${annotation.annotation_level}`
+            }`
           ])
         }
       }

@@ -59,12 +59,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v1
+        uses: actions/checkout@v4
       - name: Build and Run Tests
         run: # execute your tests generating test results
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v3
-        if: always() # always run even if the previous step fails
+        uses: mikepenz/action-junit-report@v4
+        if: success() || failure() # always run even if the previous step fails
         with:
           report_paths: '**/build/test-results/test/TEST-*.xml'
 ```
@@ -73,7 +73,7 @@ jobs:
 
 | **Input**      | **Description**                                                                                                                                                       |
 |----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `report_paths`    | **Required**. [Glob](https://github.com/actions/toolkit/tree/master/packages/glob) expression to junit report paths. The default is `**/junit-reports/TEST-*.xml`. |
+| `report_paths`    | Optional. [Glob](https://github.com/actions/toolkit/tree/master/packages/glob) expression to junit report paths. Defaults to: `**/junit-reports/TEST-*.xml`.   |
 | `token`           | Optional. GitHub token for creating a check run. Set to `${{ github.token }}` by default.                                                                          |
 | `test_files_prefix` | Optional. Prepends the provided prefix to test file paths within the report when annotating on GitHub.                                                           |
 | `exclude_sources` | Optional. Provide `,` seperated array of folders to ignore for source lookup. Defaults to: `/build/,/__pycache__/`                                                 |
@@ -82,6 +82,7 @@ jobs:
 | `commit`          | Optional. The commit SHA to update the status. This is useful when you run it with `workflow_run`.                                                                 |
 | `fail_on_failure` | Optional. Fail the build in case of a test failure.                                                                                                                |
 | `require_tests`   | Optional. Fail if no test are found.                                                                                                                               |
+| `require_passed_tests`   | Optional. Fail if no passed test are found. (This is stricter than `require_tests`, which accepts skipped tests).                                           |
 | `include_passed`   | Optional. By default the action will skip passed items for the annotations. Enable this flag to include them.                                                                                                                               |
 | `check_retries`         | Optional. If a testcase is retried, ignore the original failure.                                                                                             |
 | `check_title_template`  | Optional. Template to configure the title format. Placeholders: {{FILE_NAME}}, {{SUITE_NAME}}, {{TEST_NAME}}.                                                |
@@ -95,6 +96,41 @@ jobs:
 | `follow_symlink`    | Optional. Enables to follow symlinks when searching test files via the globber. Defaults to `false`.                           |
 | `job_name`        | Optional. Specify the name of a check to update                                                                                                                    |
 | `annotations_limit` | Optional. Specify the limit for annotations. This will also interrupt parsing all test-suites if the limit is reached. Defaults to: `No Limit`.                                              |
+
+<details><summary><b>Common report_paths</b></summary>
+<p>
+
+- Surefire: 
+`**/target/surefire-reports/TEST-*.xml`
+- sbt:
+`**/target/test-reports/*.xml`
+
+</p>
+</details>
+
+<details><summary><b>Increase Node Heap Memory</b></summary>
+<p>
+
+If you encounter an out-of-memory from Node, such as
+
+```
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+```
+
+you can increase the memory allocation by setting an environment variable
+
+```yaml
+- name: Publish Test Report
+  uses: mikepenz/action-junit-report@v4
+  env:
+    NODE_OPTIONS: "--max_old_space_size=4096"
+  if: success() || failure() # always run even if the previous step fails
+  with:
+    report_paths: '**/build/test-results/test/TEST-*.xml'
+```
+
+</p>
+</details>
 
 ### Action outputs
 
@@ -116,7 +152,14 @@ A full set list of possible output values for this action.
 
 ### PR run permissions
 
-For [security reasons], the github token used for `pull_request` workflows is [marked as read-only].
+The action requires `write` permission on the checks. If the GA token is `read-only` (this is a repository configuration) please enable `write` permission via:
+
+```yml
+permissions:
+  checks: write
+```
+
+Additionally for [security reasons], the github token used for `pull_request` workflows is [marked as read-only].
 If you want to post checks to a PR from an external repository, you will need to use a separate workflow
 which has a read/write token, or use a PAT with elevated permissions. 
 
@@ -227,7 +270,7 @@ Original idea and GitHub Actions by: https://github.com/ScaCap/action-surefire-r
 
 ## License
 
-    Copyright (C) 2022 Mike Penz
+    Copyright (C) 2023 Mike Penz
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

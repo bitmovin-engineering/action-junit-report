@@ -20,6 +20,7 @@ export async function run(): Promise<void> {
     const commit = core.getInput('commit')
     const failOnFailure = core.getInput('fail_on_failure') === 'true'
     const requireTests = core.getInput('require_tests') === 'true'
+    const requirePassedTests = core.getInput('require_passed_tests') === 'true'
     const includePassed = core.getInput('include_passed') === 'true'
     const checkRetries = core.getInput('check_retries') === 'true'
     const annotateNotice = core.getInput('annotate_notice') === 'true'
@@ -32,11 +33,15 @@ export async function run(): Promise<void> {
     const checkName = core.getMultilineInput('check_name')
     const testFilesPrefix = core.getMultilineInput('test_files_prefix')
     const suiteRegex = core.getMultilineInput('suite_regex')
-    const excludeSources = core.getMultilineInput('exclude_sources') ? core.getMultilineInput('exclude_sources') : []
+    let excludeSources = core.getMultilineInput('exclude_sources') ? core.getMultilineInput('exclude_sources') : []
     const checkTitleTemplate = core.getMultilineInput('check_title_template')
     const transformers = readTransformers(core.getInput('transformers', {trimWhitespace: true}))
     const followSymlink = core.getBooleanInput('follow_symlink')
     const annotationsLimit = Number(core.getInput('annotations_limit') || -1)
+
+    if (excludeSources.length === 0) {
+      excludeSources = ['/build/', '/__pycache__/']
+    }
 
     core.endGroup()
     core.startGroup(`📦 Process test results`)
@@ -77,15 +82,6 @@ export async function run(): Promise<void> {
       mergedResult.failed += testResult.failed
       mergedResult.passed += testResult.passed
       mergedResult.annotations.push(...testResult.annotations)
-
-      const foundResults = testResult.totalCount > 0 || testResult.skipped > 0
-      if (!foundResults) {
-        if (requireTests) {
-          core.setFailed(`❌ No test results found for ${checkName}`)
-        }
-        return
-      }
-
       testResults.push(testResult)
     }
 
@@ -95,10 +91,17 @@ export async function run(): Promise<void> {
     core.setOutput('failed', mergedResult.failed)
     core.setOutput('failedTests', generateFailedTestsReport(mergedResult.annotations))
 
+    if (!(mergedResult.totalCount > 0 || mergedResult.skipped > 0) && requireTests) {
+      core.setFailed(`❌ No test results found for ${checkName}`)
+      return // end if we failed due to no tests, but configured to require tests
+    } else if (!(mergedResult.passed > 0) && requirePassedTests) {
+      core.setFailed(`❌ No passed test results found for ${checkName}`)
+      return // end if we failed due to no passed tests, but configured to require passed tests
+    }
+
     const pullRequest = github.context.payload.pull_request
     const link = (pullRequest && pullRequest.html_url) || github.context.ref
-    const conclusion: 'success' | 'failure' =
-      mergedResult.totalCount > 0 && mergedResult.failed <= 0 ? 'success' : 'failure'
+    const conclusion: 'success' | 'failure' = mergedResult.failed <= 0 ? 'success' : 'failure'
     const headSha = commit || (pullRequest && pullRequest.head.sha) || github.context.sha
     core.info(`ℹ️ Posting with conclusion '${conclusion}' to ${link} (sha: ${headSha})`)
 
